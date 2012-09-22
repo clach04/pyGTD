@@ -29,15 +29,12 @@ import os
 ## syck's python extension is unmaintained and cheesy
 import urllib
 import getpass
-# import ydump
-import pycurl
 import StringIO
 import sys
 import stat
 import itertools
 import operator
 import string
-import yaml
 # get cElementTree from *somewhere*...
 try:
     import cElementTree
@@ -47,6 +44,13 @@ except ImportError:
     except ImportError:
         import elementtree.ElementTree as cElementTree
 import re
+
+# Third party libs
+import pycurl  # http://pypi.python.org/pypi/pycurl http://pycurl.sourceforge.net/
+import yaml  # PyYAML easy_install-able http://pypi.python.org/pypi/PyYAML/ http://pyyaml.org/wiki/PyYAML
+# import ydump
+
+
 # Python version of BestPractical's Hiveminder todo.pl, so I can import it and extend it
 
 # need to force some handlers for exposed objects...
@@ -406,7 +410,8 @@ class hm_talker:
 
 # generic sub-command argument handler
 class subcommands:
-    """commands parsing based on a child class"""
+    """commands parsing based on a child class
+    VERY similar to stdlib cmd.Cmd"""
     def __init__(self, **kwargs):
         """Construct a subcommand parser with arbitrary options available
         to the subcommands themselves"""
@@ -572,7 +577,12 @@ class hm_subcommands(subcommands):
             for prio, my_pri_tasks in itertools.groupby(my_tasks, operator.itemgetter("priority")):
                 print "  %s priority:" % hm_priority_names[prio]
                 for task in my_pri_tasks:
-                    print "    *", task["summary"], "(%s)" % encode_locator(task["id"]), "[%s]" % task["tags"]
+                    if task['due']:
+                        due_str = '[due: %s]' % task['due']  # same format as Brandump/import/export
+                    else:
+                        due_str = ''
+                    
+                    print "    *", task["summary"], "(%s)" % encode_locator(task["id"]), "[%s]" % task["tags"], due_str
                     if task["description"]:
                         print "     -", task["description"].rstrip().replace("\n","\n        ")
                     #print dir(task)
